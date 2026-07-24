@@ -1,3 +1,4 @@
+import DislikeButton from '@/app/ui/DislikeButton'
 import React from 'react'
 
  const BlogsSlugPage = async({
@@ -7,7 +8,9 @@ import React from 'react'
 })=> {
     const { slug } = await params
   return (
-    <div>BlogsSlugPage:{slug}</div>
+    <div>BlogsSlugPage:{slug}
+    <DislikeButton blogSlug={slug} />
+    </div>
   )
 }
 
