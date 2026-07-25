@@ -1,23 +1,15 @@
 import React from 'react'
-import MyServerComponent from '../ui/MyServerComponent';
 
-const BlogsPage =async () => {
-
+const MyServerComponent = async() => {
     const post = await fetch('https://jsonplaceholder.typicode.com/posts');
 
     const data = await post.json();
 
     console.log (data);
 
-
-
   return (
-    <div> 
-      Blogs Page
-      <MyServerComponent/>
-
-    </div>
+    <div>MyServerComponent</div>
   )
 }
 
-export default  BlogsPage
+export default MyServerComponent
