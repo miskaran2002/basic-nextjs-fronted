@@ -1,19 +1,29 @@
 import React from 'react'
 import MyServerComponent from '../ui/MyServerComponent';
+import { getBlogs } from '../service/getBlogs';
+import { cacheLife, cacheTag } from 'next/cache';
 
 const BlogsPage =async () => {
+  // "use cache";
+  //   cacheLife("hours")
 
-    const post = await fetch('https://jsonplaceholder.typicode.com/posts');
+  
 
-    const data = await post.json();
-
-    console.log (data);
-
-
-
+   
+const blogs = await getBlogs();
+console.log(blogs);
   return (
     <div> 
       Blogs Page
+      {
+        blogs.map((blog:any) => (
+          <div key={blog.id}>
+            <h2>{blog.title}</h2>
+            <p>{blog.body}</p>
+          </div>
+        ))
+      }
+
       <MyServerComponent/>
 
     </div>
