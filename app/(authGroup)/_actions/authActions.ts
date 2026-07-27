@@ -1,6 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 type LoginState={
     success: true,
@@ -32,7 +33,7 @@ export const loginAction = async (prevState:LoginState,formData:FormData) => {
        
     });
 
-    const result:LoginState = await res.json()
+    const result= await res.json()
     if (result.success){
         const cookieStore=  await cookies()
         cookieStore.set("accessToken",result.data.accessToken,{
@@ -46,6 +47,8 @@ export const loginAction = async (prevState:LoginState,formData:FormData) => {
             httpOnly: true,
             sameSite: "lax",
         })
+
+        redirect("/dashboard")
 
 
     }
