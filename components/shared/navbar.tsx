@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner" // ১. Sonner থেকে toast ইমপোর্ট করা হলো
 import {
     CreditCardIcon,
     LayersIcon,
@@ -10,6 +12,8 @@ import {
     SettingsIcon,
     UserIcon,
 } from "lucide-react"
+
+
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -29,6 +33,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import { logout } from "@/app/service/logout"
 
 const navItems = [
     { label: "Dashboard", href: "/" },
@@ -44,7 +49,6 @@ const userMenuItems = [
     { label: "Settings", href: "/settings", icon: SettingsIcon, shortcut: "⌘S" },
 ]
 
-// ইউজারের নাম থেকে প্রথম দুই অক্ষর (Initials) বের করার হেল্পার ফাংশন
 const getInitials = (name: string) => {
     if (!name) return "U";
     return name
@@ -87,13 +91,26 @@ type NavbarProps = {
 
 export function Navbar({ user }: NavbarProps) {
     const [mobileOpen, setMobileOpen] = useState(false)
+    const router = useRouter()
 
-    // প্রোপ থেকে ডাটাগুলো সহজ ভেরিয়েবলে রূপান্তর (সেফটি বা আনডিফাইন্ড হ্যান্ডলিং সহ)
     const profileData = user?.data?.profile;
     const name = profileData?.name || "User";
     const email = profileData?.email || "";
     const avatar = profileData?.profile?.profilePhoto || "";
     const initials = getInitials(name);
+
+    // ২. লগআউট হ্যান্ডলারে টোস্ট নোটিফিকেশন যুক্ত করা হলো
+    const handleLogout = async () => {
+        try {
+            await logout(); 
+            toast.success("Successfully logged out!"); // সফলভাবে লগআউট হওয়ার টোস্ট মেসেজ
+            router.push("/login"); 
+            router.refresh(); 
+        } catch (error) {
+            toast.error("Something went wrong during logout."); // ভুল হলে এরর টোস্ট মেসেজ
+            console.error("Logout failed:", error);
+        }
+    }
 
     return (
         <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
@@ -105,7 +122,7 @@ export function Navbar({ user }: NavbarProps) {
                 <div className="flex flex-1 items-center justify-start">
                     <Link href="/" className="flex items-center gap-2">
                         <LayersIcon className="size-5 text-primary" aria-hidden="true" />
-                        <span className="text-lg font-semibold tracking-tight text-nowrap">Next js press</span>
+                        <span className="text-lg text-purple-800 font-semibold tracking-tight text-nowrap">Next js press</span>
                     </Link>
                 </div>
 
@@ -113,7 +130,7 @@ export function Navbar({ user }: NavbarProps) {
                 <ul className="hidden items-center gap-1 md:flex justify-center">
                     {navItems.map((item) => (
                         <li key={item.href}>
-                            <Button asChild variant="ghost" size="sm">
+                            <Button asChild variant="ghost" size="sm" >
                                 <Link href={item.href}>
                                     {item.label}
                                 </Link>
@@ -165,8 +182,8 @@ export function Navbar({ user }: NavbarProps) {
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
                                 <DropdownMenuItem
-                                    onClick={() => console.log("[v0] Sign out clicked")}
-                                    className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
+                                    onClick={handleLogout} 
+                                    className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950 cursor-pointer"
                                 >
                                     <LogOutIcon className="mr-2 h-4 w-4" />
                                     <span>Log out</span>
