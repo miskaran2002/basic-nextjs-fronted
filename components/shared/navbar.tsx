@@ -142,7 +142,9 @@ export function Navbar({ user }: NavbarProps) {
                 {/* Right: User menu & Mobile toggle */}
                 <div className="flex flex-1 items-center justify-end gap-2">
                     {/* User dropdown */}
-                    <DropdownMenu>
+                   {
+                    user.success ? (
+                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="ghost"
@@ -150,7 +152,7 @@ export function Navbar({ user }: NavbarProps) {
                                 className="rounded-full"
                                 aria-label="Open user menu"
                             >
-                                <Avatar className="size-8">
+                                <Avatar className="size-8 ">
                                     <AvatarImage src={avatar} alt={name} />
                                     <AvatarFallback>{initials}</AvatarFallback>
                                 </Avatar>
@@ -191,6 +193,12 @@ export function Navbar({ user }: NavbarProps) {
                             </DropdownMenuGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    ):<Link href={"/login"}>
+                        <Button className="cursor-pointer">
+                            Login
+                        </Button>
+                    </Link>
+                   }
 
                     {/* Mobile menu */}
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
