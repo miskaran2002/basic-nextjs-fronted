@@ -44,15 +44,56 @@ const userMenuItems = [
     { label: "Settings", href: "/settings", icon: SettingsIcon, shortcut: "⌘S" },
 ]
 
-const user = {
-    name: "Ada Lovelace",
-    email: "ada@example.com",
-    avatar: "/user-avatar.png",
-    initials: "AL",
+// ইউজারের নাম থেকে প্রথম দুই অক্ষর (Initials) বের করার হেল্পার ফাংশন
+const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name
+        .trim()
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
 }
 
-export function Navbar() {
+type IUser = {
+    success: boolean,
+    message: string,
+    data: {
+        profile: {
+            id: string,
+            name: string,
+            email: string,
+            activeStatus: string,
+            role: string,
+            createdAt: string,
+            updatedAt: string,
+            profile: {
+                id: string,
+                profileId: string,
+                bio: string,
+                profilePhoto: string,
+                userID: string,
+                createdAt: string,
+                updatedAt: string
+            }
+        }
+    }
+}
+
+type NavbarProps = {
+    user: IUser
+}
+
+export function Navbar({ user }: NavbarProps) {
     const [mobileOpen, setMobileOpen] = useState(false)
+
+    // প্রোপ থেকে ডাটাগুলো সহজ ভেরিয়েবলে রূপান্তর (সেফটি বা আনডিফাইন্ড হ্যান্ডলিং সহ)
+    const profileData = user?.data?.profile;
+    const name = profileData?.name || "User";
+    const email = profileData?.email || "";
+    const avatar = profileData?.profile?.profilePhoto || "";
+    const initials = getInitials(name);
 
     return (
         <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
@@ -93,8 +134,8 @@ export function Navbar() {
                                 aria-label="Open user menu"
                             >
                                 <Avatar className="size-8">
-                                    <AvatarImage src={user.avatar} alt="" />
-                                    <AvatarFallback>{user.initials}</AvatarFallback>
+                                    <AvatarImage src={avatar} alt={name} />
+                                    <AvatarFallback>{initials}</AvatarFallback>
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
@@ -102,9 +143,9 @@ export function Navbar() {
                             <DropdownMenuGroup>
                                 <DropdownMenuLabel>
                                     <div className="flex flex-col gap-0.5">
-                                        <span className="text-sm font-medium">{user.name}</span>
+                                        <span className="text-sm font-medium">{name}</span>
                                         <span className="text-xs font-normal text-muted-foreground">
-                                            {user.email}
+                                            {email}
                                         </span>
                                     </div>
                                 </DropdownMenuLabel>
