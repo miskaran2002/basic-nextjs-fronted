@@ -48,7 +48,7 @@ export const loginAction = async (prevState:LoginState,formData:FormData) => {
             sameSite: "lax",
         })
 
-        redirect("/dashboard")
+        redirect("/")
 
 
     }
