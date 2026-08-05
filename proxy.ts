@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server"
 import { JwtPayload } from "jsonwebtoken"
 import { jwtUtils } from "./utils/jwt"
 import { cookies } from "next/headers"
+import { getNewAccessToken } from "./app/service/refreshToken"
 
 const AUTH_ROUTES = ["/login", "/register"]
 const PUBLIC_ROUTES = ["/", "/news"]
@@ -10,17 +11,39 @@ const PUBLIC_ROUTES = ["/", "/news"]
 export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const cookieStore = await cookies();
-    const accessToken = request.cookies.get("accessToken")?.value;
+
+    let accessToken = request.cookies.get("accessToken")?.value;
+    const refreshToken = request.cookies.get("refreshToken")?.value;
+
+    // ১. প্রারম্ভিক টোকেন ভেরিফিকেশন (let ব্যবহার করা হয়েছে যাতে পরে এটি আপডেট করা যায়)
+    let decodedAcessToken = accessToken ? jwtUtils.verifyToken(accessToken, process.env.JWT_ACCESS_SECRET as string) : null;
+    const decodedRefreshToken = refreshToken ? jwtUtils.verifyToken(refreshToken, process.env.JWT_REFRESH_SECRET as string) : null;
+
+    // ২. অ্যাক্সেস টোকেন এক্সপায়ার কিন্তু রিফ্রেশ টোকেন সচল থাকলে নতুন টোকেন তৈরি করা
+    if (!decodedAcessToken?.success && decodedRefreshToken?.success) {
+        const result = await getNewAccessToken();
+
+        if (result && result.success) {
+            const newAccessToken = result.data.accessToken;
+
+            cookieStore.set("accessToken", newAccessToken, {
+                httpOnly: true,
+                maxAge: 60 * 60 * 24, // 1 day
+                sameSite: "lax", 
+            });
+            
+            accessToken = newAccessToken;
+            // ক্রিশিয়াল ফিক্স: নতুন টোকেনটি এখানে রি-ডিকোড করা হলো যাতে নিচে এটি ডিলিট না হয়ে যায়
+            decodedAcessToken = jwtUtils.verifyToken(newAccessToken, process.env.JWT_ACCESS_SECRET as string);
+        }
+    }
 
     // রাউট চেকিং (পাবলিক নাকি অথ রাইট)
     const isAuthRoute = AUTH_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
     const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(route + "/"));
 
-    // টোকেন ভেরিফিকেশন
-    const decodedToken = accessToken ? jwtUtils.verifyToken(accessToken, process.env.JWT_ACCESS_SECRET as string) : null;
-
     // টোকেন মেয়াদোত্তীর্ণ বা ইনভ্যালিড হলে সেটি মুছে ফেলা
-    if (accessToken && !decodedToken?.success) {
+    if (accessToken && !decodedAcessToken?.success) {
         cookieStore.delete("accessToken");
         // প্রোটেক্টেড বা ব্যক্তিগত রাউটে যাওয়ার চেষ্টা করলে লগইনে পাঠানো হবে
         if (!isPublicRoute && !isAuthRoute) {
@@ -29,12 +52,11 @@ export async function proxy(request: NextRequest) {
     }
 
     let userRole = null;
-    
-    if (decodedToken?.success && decodedToken.data) {
-        userRole = (decodedToken.data as JwtPayload).role;
+    if (decodedAcessToken?.success && decodedAcessToken.data) {
+        userRole = (decodedAcessToken.data as JwtPayload).role;
     }
 
-    // ১. ইউজার লগইন না থাকলে এবং প্রোটেক্টেড রাউটে যাওয়ার চেষ্টা করলে লগইনে রিডাইরেক্ট করা হবে
+    // ১. ইউজার লগইন না থাকলে এবং প্রোটেক্টেড রাউটে যাওয়ার চেষ্টা করলে লগইনে রিডাইরেক্ট করা হবে
     if (!accessToken && !isPublicRoute && !isAuthRoute) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
