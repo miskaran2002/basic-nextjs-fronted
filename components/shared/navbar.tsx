@@ -36,11 +36,12 @@ import {
 import { logout } from "@/app/service/logout"
 
 const navItems = [
-    { label: "Dashboard", href: "/" },
-    { label: "Projects", href: "/projects" },
-    { label: "Analytics", href: "/analytics" },
-    { label: "Team", href: "/team" },
-    { label: "Pricing", href: "/pricing" },
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "Services", href: "/services" },
+    { label: "Contact", href: "/contact" },
+    { label: "News", href: "/news" },
+    { label: "Premium", href: "/premium" },
 ]
 
 const userMenuItems = [
