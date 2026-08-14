@@ -8,7 +8,7 @@ const DashBoardLayout =async ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
      <Navbar user={user} />
-       <div>DashBoardLayout</div> 
+       
       {children}
     </div>
   );
